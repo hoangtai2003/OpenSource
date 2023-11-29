@@ -48,13 +48,13 @@
 						while ($row=$result->fetch_assoc()){
 				?>
 					<tr>
-						<td><?php echo $row["pid"];?></td>
-						<td><?php echo $row["pname"];?></td>
-						<td><img src="images/<?php echo $row["pimage"];?>" width=160px></td>
-						<td><?php echo $row["pprice"];?></td>
-						<td><?php echo $row["pquantity"];?></td>
-						<td><?php echo $row["cname"];?></td>
-						<td><a href="product_detail.php?pid=<?php echo $row["pid"];?>">Detail</a></td>
+						<td><?= $row["pid"];?></td>
+						<td><?= $row["pname"];?></td>
+						<td><img src="images/<?= $row["pimage"];?>" width=160px></td>
+						<td><?= $row["pprice"];?></td>
+						<td><?= $row["pquantity"];?></td>
+						<td><?= $row["cname"];?></td>
+						<td><a href="product_detail_action.php?pid=<?= $row["pid"];?>">Detail</a></td>
 					</tr>
 				<?php 				
 						}

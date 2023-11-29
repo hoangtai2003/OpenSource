@@ -32,10 +32,3 @@
 		header("Location:product_view.php");
 	}
 ?>
-<html>
-	<head>
-		<meta charset="utf-8">
-	</head>
-	<body>
-	</body>
-</html>
