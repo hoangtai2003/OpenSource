@@ -233,7 +233,7 @@
                                     } 
                                     ?></td>
                                     <td><a href="product_view_all.php?action=edit&pid=<?= $row["pid"];?>">Sửa</a></td>
-                                    <td><a onclick="return confirm("Bạn có chắc muốn xoá <?=$row["pname"]?> hay ko?)  href="product_view_all.asp?action=delete&pid=<?=$row["pid"]?>">Xóa</a></td>
+                                    <td><a onclick="return confirm('Bạn có chắc muốn xoá <?=$row["pname"]?> hay ko?');"  href="product_view_all.php?action=delete&pid=<?=$row["pid"]?>">Xóa</a></td>
                                 </tr>
                             <?php
                         }

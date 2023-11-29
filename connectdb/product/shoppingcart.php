@@ -28,6 +28,8 @@
 					*/
 					if (!empty($_SESSION["cart_item"])){
 						if (in_array($r[0]["code"], array_keys($_SESSION["cart_item"]))){
+						// in_array: kiểm tra xem 1 giá trị có tồn tại trong mảng hay không
+						// array_keys : trả về một mảng chứa các khóa (keys) từ một mảng
 							foreach($_SESSION["cart_item"] as $k=>$v){
 								if ($r[0]["code"]==$k){
 									if (empty($_SESSION["cart_item"][$k]["pquantity"])){
