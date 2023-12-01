@@ -7,10 +7,11 @@
         $sql = "select * from user where username = '$username' and password = '$password'";
         $result = mysqli_query($conn, $sql);
         if (mysqli_num_rows($result) > 0){
-            $_SESSION["loggin"] = true;
+            $_SESSION["login"] = true;
             header("Location: ../connectdb/product/shoppingcart.php");
             exit(0);
-
+        } else {
+            header("Location: login.php");
         }
     }
 

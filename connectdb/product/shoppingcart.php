@@ -2,44 +2,32 @@
 	session_start();
 	//unset($_SESSION["cart_item"]);
 	require_once("../connect.php");
-	function saveOrder($userId, $total_quantity, $total_price, $receive_username,$orderDetails, $address, $email, $phone, $paymentMethod = "Thanh toán khi nhận hàng"){
-		require_once("../connect.php");
-		$sql = "INSERT INTO order (userid, total_quantity, total_price, receiver_username, address, email, phone, payment_method) VALUES ('$userId', '$total_quantity', '$total_price', '$receive_username', '$address', '$email', '$phone', '$paymentMethod')";
-		mysqli_query($conn, $sql);
-		// Lấy id của đơn hàng vừa thêm vào
-		$orderId = mysqli_insert_id($conn);
-		foreach ($orderDetails as $item) {
-			$pid = $item["pid"];
-			$quantity = $item["pquantity"];
-			$price = $item["pprice"];
-	
-			$sql = "INSERT INTO orderdetail (oid, pid, quantity, price) VALUES ('$orderId', '$pid', '$quantity', '$price')";
-			mysqli_query($conn, $sql);
-		}
-	} 
 	$sql="select a.*,b.cname from 0203466_Product_18 a,Categories b where a.cid=b.cid order by pid asc";
 	$result=$conn->query($sql) or die($conn->error);
 	//xử lý đối với giỏ hàng
 	if (!empty($_GET["action"])){
 		switch($_GET["action"]){
 			case "pay":
-				if (!isset($_SESSION["loggin"])){
+				// Kiểm tra nếu người dùng chưa đăng nhập, chuyển hướng về trang đăng nhập
+				if (!isset($_SESSION["login"])) {
 					header("Location: ../../login/login.php");
 					exit(0);
 				}
-				$userId = $_SESSION["loggin"];
-				$userInfoSql = "select * from user where uid = '$userId'";
+				// Lấy thông tin người nhận hàng từ bảng user
+				$currentUserId = $_SESSION["login"];
+				$userInfoSql = "SELECT * FROM user WHERE uid = '$currentUserId'";
 				$userInfoResult = mysqli_query($conn, $userInfoSql);
-				if (mysqli_num_rows($userInfoResult) > 0){
+				if (mysqli_num_rows($userInfoResult) > 0) {
 					$userInfo = mysqli_fetch_assoc($userInfoResult);
-					$receive_username = $userInfo["username"];
-					$address = $userInfo["address"];
-					$email= $userInfo["email"];
-					$phone = $userInfo["phone"];
-					$ostatus = $userInfo["status"];
-				} else {
-
-				}
+					$receiverName = $userInfo["username"];
+					$receiverAddress = $userInfo["address"];
+					$receiverEmail = $userInfo["email"];
+					$receiverPhone = $userInfo["phone"];
+				} 
+			
+				$paymentMethod = "Thanh toán khi nhận hàng";
+				$ostatus = "Đã thanh toán";
+				// Sau khi tính tổng giá trị đơn hàng và số lượng sản phẩm
 				if (!empty($_SESSION["cart_item"])) {
 					$total_quantity = 0;
 					$total_price = 0;
@@ -49,13 +37,27 @@
 						$total_price += $item["pquantity"] * $item["pprice"];
 					}
 			
-					// Lưu đơn hàng vào cơ sở dữ liệu
-					saveOrder($userId, $total_quantity, $total_price, $_SESSION["cart_item"], $receive_username , $address, $email, $phone);
+					// Thực hiện câu truy vấn để lưu thông tin đơn hàng
+					$orderSql = "INSERT INTO orders (userid, total_quantity, total_price, receiver_username, address, email, phone, payment_method, ostatus) VALUES ('$currentUserId', '$total_quantity', '$total_price', '$receiverName', '$receiverAddress', '$receiverEmail', '$receiverPhone', '$paymentMethod', '$ostatus')";
+					mysqli_query($conn, $orderSql);
+			
+					// Lấy ID của đơn hàng vừa thêm vào
+					$orderId = mysqli_insert_id($conn);
+			
+					// Lưu chi tiết đơn hàng
+					foreach ($_SESSION["cart_item"] as $item) {
+						$pid = $item["pid"];
+						$quantity = $item["pquantity"];
+						$price = $item["pprice"];
+			
+						$detailSql = "INSERT INTO orderdetail (oid, pid, quantity, price) VALUES ('$orderId', '$pid', '$quantity', '$price')";
+						mysqli_query($conn, $detailSql);
+					}
 			
 					// Xóa giỏ hàng sau khi thanh toán
 					unset($_SESSION["cart_item"]);
 				}
-				break;
+				break;			
 			case "add":
 				if (!empty($_POST["quantity"])){
 					$pid = $_GET["pid"];
@@ -71,10 +73,6 @@
 							"pimage"=>$r[0]["pimage"])
 						);
 					//var_dump($itemArray);
-					/*
-						"a3"=>("pid"=>3,"pname"=>"xxxx","code"=>"a3"....),
-						"a4"=>("pid"=>4,"pname"=>"xxx","code"=>"a4".....).....
-					*/
 					if (!empty($_SESSION["cart_item"])){
 						if (in_array($r[0]["code"], array_keys($_SESSION["cart_item"]))){
 						// in_array: kiểm tra xem 1 giá trị có tồn tại trong mảng hay không
@@ -115,6 +113,12 @@
 			case "empty":
 				unset($_SESSION["cart_item"]);
 				break;
+			case "logout":
+				session_destroy();
+				session_unset();
+				unset($_SESSION["login"]);
+				header("Location: ../../login/login.php");
+				break;
 		}
 	}
 	
@@ -130,6 +134,7 @@
 			<div class="txt-heading">Shopping Cart</div>
 				<a id="btnPay" href="?action=pay">Thanh toán</a>
 				<a id="btnEmpty" href="?action=empty">Empty Cart</a>
+				<a id="btnLogout" href="?action=logout">Log out</a>
 				<?php 
 					$total_quantity = 0;
 					$total_price = 0;
