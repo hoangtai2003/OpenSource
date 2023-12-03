@@ -13,6 +13,7 @@
 		<script>
 		$(document).ready(function(){
 			$("#search-box").keyup(function(){
+				//Lấy giá trị hiện tại nhập vào ô tìm kiếm gán vào keyword
 				var keyword = $(this).val();
 				$.ajax({
 				type: "GET",
