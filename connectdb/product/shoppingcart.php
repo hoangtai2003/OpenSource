@@ -79,7 +79,6 @@
 					$product = $conn->query("select * from 0203466_Product_18 where pid=".$pid) or die($conn->error);
 					$r[] = $product->fetch_assoc();
 					if ($r[0]["pquantity"] >  0){
-						// Kiểm tra xem người dùng đã có trong giỏ hàng chưa
 						$checkCartSql = "SELECT * FROM cart WHERE uid = '$UserId'";
 						$checkCartResult = mysqli_query($conn, $checkCartSql);
 			
@@ -88,7 +87,7 @@
 							$insertCartSql = "INSERT INTO cart (uid) VALUES ('$UserId')";
 							mysqli_query($conn, $insertCartSql);
 						}
-			
+						//$ItemArray đại diện cho một sản phẩm sẽ được thêm vào giỏ hàng , khóa chính là code
 						$itemArray = array(
 							$r[0]["code"] => array(
 								"pid" => $r[0]["pid"],
@@ -119,7 +118,6 @@
 										}
 										$_SESSION["cart_item"][$k]["pquantity"] +=$_POST["quantity"];
 									}
-									// unset($_SESSION["cart_item"][$k]["pquantity"]);
 								}	
 							} else {
 								$_SESSION["cart_item"] = array_merge($_SESSION["cart_item"],$itemArray);
@@ -128,12 +126,13 @@
 						} else {
 							$_SESSION["cart_item"]=$itemArray;
 						}
+						// Kiểm tra xem người dùng đã có trong giỏ hàng chưa
 					} else {
 						?>
-					<script>
-						alert("Sản phẩm này đã hết hàng");
-					</script>
-					<?php
+						<script>
+							alert("Sản phẩm này đã hết hàng");
+						</script>
+						<?php
 					}
 					
 				} else {
@@ -147,31 +146,48 @@
 				
 				break;
 			case "remove":
-				if (!empty($_SESSION["cart_item"])){
-					foreach($_SESSION["cart_item"] as $k=>$v){
-						if ($_GET["code"]==$k){
-							unset($_SESSION["cart_item"][$k]);
-						}
-						if (empty($_SESSION["cart_item"])){
-							unset($_SESSION["cart_item"]);
+				$pid = $_REQUEST["pid"];
+				$UserId = $_SESSION["UserId"];
+				
+				if (!empty($_SESSION["cart_item"])) {
+					foreach ($_SESSION["cart_item"] as $k => $v) {
+						if ($_GET["code"] == $k) {
+							$checkCartid = "select * from cart where uid = '$UserId'";
+							$resultCheckCartId = mysqli_query($conn, $checkCartid);
+							$check = mysqli_fetch_assoc($resultCheckCartId);
+				
+							if (isset($_SESSION["cart_item"]) && is_array($_SESSION["cart_item"])) {
+								foreach ($_SESSION["cart_item"] as $item) {
+									$clearCartDetail = "DELETE FROM cartdetail WHERE CartId = '" . $check['CartId'] . "' and pid = '" . $pid . "'";
+									mysqli_query($conn, $clearCartDetail);
+								}
+								unset($_SESSION["cart_item"][$k]);
+							}
 						}
 					}
+					if (empty($_SESSION["cart_item"])) {
+						unset($_SESSION["cart_item"]);
+					}
 				}
+				
 				break;
 			case "empty":
-				if (isset($_SESSION['UserId'])){
-					$checkCartid = "select * from cart  WHERE uid = '$UserId'";
-					$resultCheckCartId = mysqli_query($conn, $checkCartid);
-					$check = mysqli_fetch_assoc($resultCheckCartId);
-					foreach ($_SESSION["cart_item"] as $cart_item) {
+				$UserId = $_SESSION["UserId"];
+				$checkCartid = "select * from cart  WHERE uid = '$UserId'";
+				$resultCheckCartId = mysqli_query($conn, $checkCartid);
+				$check = mysqli_fetch_assoc($resultCheckCartId);
+				// Kiểm tra xem giá trị được liên kết với khóa 'cart_item' có phải là một mảng hay không. 
+				//Hàm is_array trả về true nếu biến được cung cấp là một mảng và ngược lại là false.
+				if (isset($_SESSION["cart_item"]) && is_array($_SESSION["cart_item"])){
+					foreach ($_SESSION["cart_item"] as $item) {
 						$clearCartDetail = "DELETE FROM cartdetail WHERE CartId = '".$check['CartId']."'";
 						mysqli_query($conn, $clearCartDetail);
 					}
 					$clearCartSql = "DELETE FROM cart WHERE uid = '$UserId'";
 					mysqli_query($conn, $clearCartSql);
-					// Xóa giỏ hàng sau khi thanh toán
 					unset($_SESSION["cart_item"]);
-				}
+				}	
+
 				break;
 			case "logout":
 				if (!empty($_GET["action"]) && $_GET["action"] == "logout") {
@@ -224,7 +240,7 @@
 									<td align=right><?php echo $item["pquantity"];?></td>
 									<td align=right><?php echo $item["pprice"];?></td>
 									<td align=right><?php echo "$".number_format($item_price,0);?></td>
-									<td><a href="?action=remove&code=<?php echo $item["code"];?>">Remove</a></td>
+									<td><a href="?action=remove&code=<?php echo $item["code"];?>&pid=<?php echo $item["pid"];?> ">Remove</a></td>
 								</tr>
 								<?php 
 								$total_quantity+=$item["pquantity"];
