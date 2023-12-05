@@ -22,7 +22,7 @@ Cú pháp: mysqli_query(connection, query, resultmode);
 Cú pháp: mysqli_num_rows(result):
     result là tập hợp các kết quả trả về từ các hàm mysqli_query(), mysqli_store_result() hoặc mysqli_use_result()
 
-4. Hàm mysqli_fetch_array: Tìm nạp một hàng kết quả dưới dạng một dạng kết hợp, một mảng số hoặc cả hai
+4. Hàm mysqli_fetch_array: Tìm nạp một hàng kết quả dưới dạng một mảng kết hợp, một mảng số hoặc cả hai
 > Lưu ý: Các fieldname trả về từ hàm này là phân biệt hoa thường.
 Cú pháp: mysqli_fetch_array(result, resulttype);
     "result" là một tập hợp kết quả trả về từ các hàm mysqli_query(), mysqli_store_result() hoặc mysqli_use_result()

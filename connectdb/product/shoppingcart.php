@@ -98,7 +98,7 @@
 								"pimage" => $r[0]["pimage"]
 							)
 						);
-			
+
 						// Lấy id giỏ hàng cho người dùng
 						$getCartIdSql = "SELECT CartId FROM cart WHERE uid = '$UserId'";
 						$getCartIdResult = mysqli_query($conn, $getCartIdSql);
@@ -116,7 +116,16 @@
 										if (empty($_SESSION["cart_item"][$k]["pquantity"])){
 											$_SESSION["cart_item"][$k]["pquantity"]= 0;
 										}
-										$_SESSION["cart_item"][$k]["pquantity"] +=$_POST["quantity"];
+										if ($r[0]["pquantity"] >= $_SESSION["cart_item"][$k]["pquantity"] + $_POST["quantity"]){
+											$_SESSION["cart_item"][$k]["pquantity"] +=$_POST["quantity"];
+										} else {
+											?>
+											<script>
+												alert("Số lượng thêm vượt quá số lượng sẵn có");
+											</script>
+											<?php
+										}
+										
 									}
 								}	
 							} else {
@@ -126,7 +135,6 @@
 						} else {
 							$_SESSION["cart_item"]=$itemArray;
 						}
-						// Kiểm tra xem người dùng đã có trong giỏ hàng chưa
 					} else {
 						?>
 						<script>
@@ -268,7 +276,7 @@
 							<div class="product-tile-footer" style="background-color: #694b4b;">
 								<div class="product-title"><?php echo $r["code"]."-".$r["pname"]."-".$r["cname"];?></div>
 								<div class="product-price"><?php echo number_format($r["pprice"]);?>VND</div>
-								<div class="cart-action"><input type=text class="product-quantity" name=quantity value=1 size=2>
+								<div class="cart-action"><input type=text class="product-quantity" name=quantity value="1" size=2>
 								<input type=submit value="Add to Cart" class="btnAddAction"></div>
 							</div>
 						</form>
